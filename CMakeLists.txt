@@ -1,32 +1,15 @@
 cmake_minimum_required(VERSION 3.28)
 project(DelaunayTriangulation VERSION 1.0)
 
-set(CMAKE_C_STANDARD 23)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(Graph STATIC src/Graph.c)
-add_executable(DelaunayExecutable src/Delaunay.c)
+add_subdirectory(modules/csv_parser)
+add_subdirectory(modules/delaunay)
 
-target_compile_features(DelaunayExecutable PRIVATE c_std_23)
+option(build_tests "Build lockfree_queue tests" ON)
 
-set_target_properties(DelaunayExecutable PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-    C_STANDARD_REQUIRED ON
-    C_EXTENSIONS OFF
-)
-
-set_target_properties(Graph PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    C_STANDARD_REQUIRED ON
-    C_EXTENSIONS OFF
-)
-
-target_link_libraries(DelaunayExecutable PRIVATE Graph)
-
-target_include_directories(Graph PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(DelaunayExecutable PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-if(UNIX)
-    target_link_libraries(DelaunayExecutable PRIVATE m)
+if(build_tests)
+    enable_testing()
+    add_subdirectory(tests)
 endif()
