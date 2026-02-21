@@ -7,7 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(modules/csv_parser)
 add_subdirectory(modules/delaunay)
 
-option(build_tests "Build lockfree_queue tests" ON)
+option(build_tests "Build delaunay triangulation tests" ON)
 
 if(build_tests)
     enable_testing()
