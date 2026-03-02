@@ -8,8 +8,13 @@ add_subdirectory(modules/csv_parser)
 add_subdirectory(modules/geometry_tool)
 
 option(build_tests "Build delaunay triangulation tests" ON)
+option(build_vulkan_viewer "Build Vulkan 3D visualization app" OFF)
 
 if(build_tests)
     enable_testing()
     add_subdirectory(tests)
+endif()
+
+if(build_vulkan_viewer)
+    add_subdirectory(apps/vulkan_viewer)
 endif()

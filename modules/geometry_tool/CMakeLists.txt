@@ -13,6 +13,7 @@ endif()
 
 file(GLOB_RECURSE GEO_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/geo_2D/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/geo_3D/*.cpp"
 )
 
 target_sources(geometry_tool
