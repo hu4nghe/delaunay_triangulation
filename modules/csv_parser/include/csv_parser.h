@@ -120,7 +120,8 @@ struct parse_error : std::runtime_error
  * }
  * @endcode
  * 
- * @see delaunay_triangulate() - Process read coordinate points
+ * @see tools_2D::boyer_watson_2D() - Process read coordinate points
+ * @see tools_2D::guibas_stolfi_2D() - Process read coordinate points
  */
 auto read_csv_coords(const std::filesystem::path& file) 
     -> std::vector<std::pair<double,double>>;

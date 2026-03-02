@@ -19,9 +19,9 @@ delaunay_triangulation/
 ├── modules/
 │   ├── delaunay/              # Core Delaunay triangulation library
 │   │   ├── include/
-│   │   │   └── delaunay.h      # API header file
+│   │   │   └── triangulation_2D.h      # API header file
 │   │   └── src/
-│   │       └── delaunay.cpp    # Algorithm implementation
+│   │       └── triangulation_2D.cpp    # Algorithm implementation
 │   └── csv_parser/             # CSV coordinate file parser
 │       ├── include/
 │       │   └── csv_parser.h    # CSV parsing API
@@ -58,7 +58,7 @@ ctest
 #### Method 1: Direct Point Array Triangulation
 
 ```cpp
-#include "delaunay.h"
+#include "geo_2D/triangulation_2D.h"
 #include <vector>
 
 int main() {
@@ -71,7 +71,7 @@ int main() {
     };
     
     // Perform triangulation
-    auto triangles = delaunay_triangulate(points);
+    auto triangles = tools_2D::boyer_watson_2D(points);
     
     // Process results
     for (const auto& tri : triangles) {
@@ -86,7 +86,7 @@ int main() {
 #### Method 2: Read from CSV File
 
 ```cpp
-#include "delaunay.h"
+#include "geo_2D/triangulation_2D.h"
 #include <iostream>
 
 int main() {
@@ -123,10 +123,10 @@ Or with space separation:
 
 ### Core Functions
 
-#### `delaunay_triangulate()`
+#### `boyer_watson_2D()`
 
 ```cpp
-auto delaunay_triangulate(const std::vector<tools_2D::point>& points) 
+auto tools_2D::boyer_watson_2D(const std::vector<tools_2D::point>& points)
     -> std::vector<tools_2D::triangle>;
 ```
 
@@ -251,12 +251,12 @@ A:
 // ✅ Recommended usage
 std::vector<tools_2D::point> points = /* ... */;
 if (points.size() >= 3) {
-    auto triangles = delaunay_triangulate(points);
+    auto triangles = tools_2D::boyer_watson_2D(points);
     // Use results
 }
 
 // ⚠️ Avoid: Not validating point count
-auto bad = delaunay_triangulate(small_points);  // May fail
+auto bad = tools_2D::boyer_watson_2D(small_points);  // May fail
 ```
 
 ## 🐛 Known Limitations

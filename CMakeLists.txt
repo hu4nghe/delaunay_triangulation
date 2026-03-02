@@ -5,7 +5,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(modules/csv_parser)
-add_subdirectory(modules/delaunay)
+add_subdirectory(modules/geometry_tool)
 
 option(build_tests "Build delaunay triangulation tests" ON)
 

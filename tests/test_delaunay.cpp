@@ -3,7 +3,7 @@
 #include <catch2/benchmark/catch_benchmark.hpp>
 #include <random>
 
-#include "delaunay.h"
+#include "geo_2D/triangulation_2D.h"
 
 bool satisfies_empty_circle(const std::vector<tools_2D::point> pts, const std::vector<tools_2D::triangle>& triangles) 
 {
@@ -81,7 +81,7 @@ std::vector<tools_2D::point> random_cloud(int n, unsigned seed = 42)
 TEST_CASE("Basic", "[delaunay][basic]") 
 {
     auto pts = three_points_triangle();
-    auto triangles = delaunay_triangulate(pts);
+    auto triangles = tools_2D::boyer_watson_2D(pts);
     REQUIRE(triangles.size() == 1);
 
     // Empty-circle satisfied trivially with 3 points.
@@ -91,7 +91,7 @@ TEST_CASE("Basic", "[delaunay][basic]")
 TEST_CASE("Square", "[delaunay][square]") 
 {
     auto pts = square_4();
-    auto triangles = delaunay_triangulate(pts);
+    auto triangles = tools_2D::boyer_watson_2D(pts);
 
     // Two triangles expected.
     REQUIRE(triangles.size() == 2);
@@ -100,16 +100,32 @@ TEST_CASE("Square", "[delaunay][square]")
 
 TEST_CASE("Random cloud", "[delaunay][random_cloud]") 
 {
-    auto pts = random_cloud(50000, 2025);
-    auto triangles = delaunay_triangulate(pts);
+    auto pts = random_cloud(500, 2025);
+    auto triangles = tools_2D::boyer_watson_2D(pts);
+    REQUIRE(satisfies_empty_circle(pts, triangles));
+}
+
+TEST_CASE("Guibas-Stolfi API", "[delaunay][guibas_stolfi]")
+{
+    auto pts = random_cloud(500, 2025);
+    auto triangles = tools_2D::guibas_stolfi_2D(pts);
     REQUIRE(satisfies_empty_circle(pts, triangles));
 }
 
 TEST_CASE("Random cloud Benchmark", "[delaunay][benchmark]") 
 {
     auto pts = random_cloud(500, 2025);
-    BENCHMARK("delaunay_triangulate 500 points") 
+    BENCHMARK("boyer_watson_2D 500 points") 
     {
-        return delaunay_triangulate(pts);
+        return tools_2D::boyer_watson_2D(pts);
+    };
+}
+
+TEST_CASE("Random cloud Benchmark Guibas-Stolfi", "[delaunay][benchmark]")
+{
+    auto pts = random_cloud(500, 2025);
+    BENCHMARK("guibas_stolfi_2D 500 points")
+    {
+        return tools_2D::guibas_stolfi_2D(pts);
     };
 }

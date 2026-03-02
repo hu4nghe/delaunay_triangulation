@@ -31,7 +31,6 @@ target_link_libraries(test_delaunay
     PRIVATE
         csv_parser
         geometry_tool
-        delaunay
         Catch2::Catch2WithMain
 )
 
