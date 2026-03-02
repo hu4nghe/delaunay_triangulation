@@ -18,8 +18,11 @@
  */
 
 #include <charconv>
-#include <stdexcept>
+#include <cmath>
+#include <cctype>
 #include <fstream>
+#include <string_view>
+#include <system_error>
 
 #include "csv_parser.h"
 
@@ -48,12 +51,54 @@
  */
 auto parse_line(const std::string& line, std::size_t lineno) -> std::pair<double,double> 
 {
-    // Locate the comma separator between x and y coordinates
-    auto comma_pos = line.find(',');
-    
-    // Validate that a separator was found
-    if (comma_pos == std::string::npos)
-        throw parse_error("Line " + std::to_string(lineno) + ": missing comma");
+    auto is_space = [](unsigned char c) { return std::isspace(c) != 0; };
+    auto trim = [&](std::string_view sv) {
+        while (!sv.empty() && is_space(static_cast<unsigned char>(sv.front())))
+            sv.remove_prefix(1);
+        while (!sv.empty() && is_space(static_cast<unsigned char>(sv.back())))
+            sv.remove_suffix(1);
+        return sv;
+    };
+
+    auto split_by_space = [&](std::string_view sv) -> std::pair<std::string_view, std::string_view>
+    {
+        std::size_t i = 0;
+        const auto n = sv.size();
+
+        while (i < n && is_space(static_cast<unsigned char>(sv[i]))) ++i;
+        const auto first_begin = i;
+        while (i < n && !is_space(static_cast<unsigned char>(sv[i]))) ++i;
+        const auto first_end = i;
+
+        while (i < n && is_space(static_cast<unsigned char>(sv[i]))) ++i;
+        const auto second_begin = i;
+        while (i < n && !is_space(static_cast<unsigned char>(sv[i]))) ++i;
+        const auto second_end = i;
+
+        while (i < n && is_space(static_cast<unsigned char>(sv[i]))) ++i;
+
+        if (first_begin == first_end || second_begin == second_end || i != n)
+            throw parse_error("Line " + std::to_string(lineno) + ": expected two columns");
+
+        return {sv.substr(first_begin, first_end - first_begin), sv.substr(second_begin, second_end - second_begin)};
+    };
+
+    std::string_view line_sv = trim(line);
+    std::string_view x_sv;
+    std::string_view y_sv;
+
+    const auto comma_pos = line_sv.find(',');
+    if (comma_pos != std::string_view::npos)
+    {
+        x_sv = trim(line_sv.substr(0, comma_pos));
+        y_sv = trim(line_sv.substr(comma_pos + 1));
+    }
+    else
+    {
+        auto [first, second] = split_by_space(line_sv);
+        x_sv = trim(first);
+        y_sv = trim(second);
+    }
 
     // Helper lambda for safe double parsing using std::from_chars
     // This function attempts to convert a string view to a double and throws
@@ -63,19 +108,25 @@ auto parse_line(const std::string& line, std::size_t lineno) -> std::pair<double
         double value{};
         const auto* begin = sv.data();
         const auto* end = sv.data() + sv.size();
+        if (sv.empty())
+            throw parse_error("Line " + std::to_string(lineno) + ": empty numeric field");
+
         // Use from_chars for efficient, exception-free numeric conversion
         auto res = std::from_chars(begin, end, value);
         
         // Check for conversion errors or trailing characters (partial parsing)
         if (res.ec != std::errc() || res.ptr != end) 
             throw parse_error("Line " + std::to_string(lineno) + ": invalid double '" + std::string(sv) + "'");
+
+        if (!std::isfinite(value))
+            throw parse_error("Line " + std::to_string(lineno) + ": non-finite value '" + std::string(sv) + "'");
         
         return value;
     };
 
-    // Extract x coordinate (before comma) and y coordinate (after comma)
-    double x = parse_double(std::string_view(line).substr(0, comma_pos));
-    double y = parse_double(std::string_view(line).substr(comma_pos + 1));
+    // Extract x and y coordinates
+    double x = parse_double(x_sv);
+    double y = parse_double(y_sv);
     return {x, y};
 }
 
@@ -115,28 +166,70 @@ auto parse_line(const std::string& line, std::size_t lineno) -> std::pair<double
  */
 auto read_csv_coords(const std::filesystem::path& file) -> std::vector<std::pair<double,double>>
 {
+    if (!std::filesystem::exists(file))
+    {
+        throw std::filesystem::filesystem_error(
+            "Cannot open file",
+            file,
+            std::make_error_code(std::errc::no_such_file_or_directory)
+        );
+    }
+
     // Attempt to open the CSV file
     std::ifstream fin(file);
     if (!fin.is_open())
-        throw std::runtime_error("Cannot open file: " + file.string());
+    {
+        throw std::filesystem::filesystem_error(
+            "Cannot open file",
+            file,
+            std::make_error_code(std::errc::io_error)
+        );
+    }
 
     std::vector<std::pair<double,double>> coords;
     std::string line;
     std::size_t lineno{};
-    
-    // Skip the header row (first line of CSV)
-    if (!std::getline(fin, line))
-        throw std::runtime_error("Empty CSV file: " + file.string());
-    ++lineno;
+    bool first_non_empty_processed = false;
+    auto has_alpha = [](std::string_view sv)
+    {
+        for (unsigned char c : sv)
+            if (std::isalpha(c) != 0)
+                return true;
+        return false;
+    };
+    auto is_blank = [](std::string_view sv)
+    {
+        for (unsigned char c : sv)
+            if (std::isspace(c) == 0)
+                return false;
+        return true;
+    };
 
     // Process each remaining line in the file
     while (std::getline(fin, line)) 
     {
         lineno++;
-        // Skip empty lines (allow flexible formatting)
-        if (line.empty()) continue;
-        // Parse the current line and add the coordinate pair to the result vector
+        if (is_blank(line))
+            continue;
+
+        if (!first_non_empty_processed)
+        {
+            first_non_empty_processed = true;
+            try
+            {
+                coords.push_back(parse_line(line, lineno));
+            }
+            catch (const parse_error&)
+            {
+                if (has_alpha(line))
+                    continue;
+                throw;
+            }
+            continue;
+        }
+
         coords.push_back(parse_line(line, lineno));
     }
+
     return coords;
 }

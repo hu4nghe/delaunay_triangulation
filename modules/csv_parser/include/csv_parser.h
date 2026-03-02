@@ -15,6 +15,7 @@
 #pragma once
 
 #include <filesystem>
+#include <stdexcept>
 #include <vector>
 
 /**
