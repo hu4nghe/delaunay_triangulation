@@ -10,7 +10,7 @@
       "name": "clangcl-vcpkg-debug",
       "displayName": "Clang-CL + vcpkg (Debug)",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/clangcl-vcpkg-debug",
+      "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "clang-cl",
@@ -21,32 +21,6 @@
         "build_tests": "ON",
         "build_vulkan_viewer": "ON"
       }
-    },
-    {
-      "name": "clangcl-vcpkg-release",
-      "displayName": "Clang-CL + vcpkg (Release)",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/clangcl-vcpkg-release",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl",
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/.tools/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_FEATURE_FLAGS": "manifests",
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "build_tests": "ON",
-        "build_vulkan_viewer": "ON"
-      }
-    }
-  ],
-  "buildPresets": [
-    {
-      "name": "build-clangcl-vcpkg-debug",
-      "configurePreset": "clangcl-vcpkg-debug"
-    },
-    {
-      "name": "build-clangcl-vcpkg-release",
-      "configurePreset": "clangcl-vcpkg-release"
     }
   ],
   "testPresets": [
