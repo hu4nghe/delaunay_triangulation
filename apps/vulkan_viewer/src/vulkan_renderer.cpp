@@ -143,19 +143,63 @@ void VulkanRenderer::cleanup()
 
 void VulkanRenderer::setMesh(const SceneBridge::MeshData& mesh)
 {
-    std::vector<Vertex> vertices;
-    vertices.reserve(mesh.positions.size());
-
-    for (const auto& p : mesh.positions)
+    std::vector<Vertex>        vertices;
+    std::vector<std::uint32_t> new_indices;
+    auto                       hslToRgb = [](float h, float s, float l) -> glm::vec3
     {
-        const float t = (p.z + 1.0f) * 0.5f;
-        vertices.push_back({p, {0.2f + 0.8f * t, 0.7f - 0.4f * t, 1.0f - 0.6f * t}});
+        if (s == 0.0f)
+        {
+            return glm::vec3(l, l, l);
+        }
+
+        float q = l < 0.5f ? l * (1.0f + s) : l + s - l * s;
+        float p = 2.0f * l - q;
+
+        auto hueToRgb = [](float p, float q, float t) -> float
+        {
+            if (t < 0.0f) t += 1.0f;
+            if (t > 1.0f) t -= 1.0f;
+            if (t < 1.0f / 6.0f) return p + (q - p) * 6.0f * t;
+            if (t < 1.0f / 2.0f) return q;
+            if (t < 2.0f / 3.0f) return p + (q - p) * (2.0f / 3.0f - t) * 6.0f;
+            return p;
+        };
+
+        float r = hueToRgb(p, q, h + 1.0f / 3.0f);
+        float g = hueToRgb(p, q, h);
+        float b = hueToRgb(p, q, h - 1.0f / 3.0f);
+
+        return glm::vec3(r, g, b);
+    };
+
+    const size_t triangle_count = mesh.indices.size() / 3;
+    vertices.reserve(triangle_count * 3);
+    new_indices.reserve(mesh.indices.size());
+
+    for (size_t tri_idx = 0; tri_idx < triangle_count; ++tri_idx)
+    {
+        float hue = std::fmod(tri_idx * 0.618033988749f, 1.0f);
+
+        glm::vec3 base_color = hslToRgb(hue, 0.8f, 0.6f);
+        glm::vec3 face_color = base_color * 0.7f + 0.3f;
+
+        uint32_t idx0 = mesh.indices[tri_idx * 3 + 0];
+        uint32_t idx1 = mesh.indices[tri_idx * 3 + 1];
+        uint32_t idx2 = mesh.indices[tri_idx * 3 + 2];
+
+        vertices.push_back({mesh.positions[idx0], face_color});
+        vertices.push_back({mesh.positions[idx1], face_color});
+        vertices.push_back({mesh.positions[idx2], face_color});
+
+        new_indices.push_back(static_cast<std::uint32_t>(tri_idx * 3 + 0));
+        new_indices.push_back(static_cast<std::uint32_t>(tri_idx * 3 + 1));
+        new_indices.push_back(static_cast<std::uint32_t>(tri_idx * 3 + 2));
     }
 
     vkDeviceWaitIdle(device_);
     destroyMeshBuffers();
 
-    if (vertices.empty() || mesh.indices.empty())
+    if (vertices.empty() || new_indices.empty())
     {
         index_count_      = 0;
         line_index_count_ = 0;
@@ -165,12 +209,12 @@ void VulkanRenderer::setMesh(const SceneBridge::MeshData& mesh)
 
     std::set<std::pair<std::uint32_t, std::uint32_t>> unique_edges;
     unique_edges.clear();
-    for (std::size_t i = 0; i + 2 < mesh.indices.size(); i += 3)
+    for (std::size_t i = 0; i + 2 < new_indices.size(); i += 3)
     {
         const std::uint32_t tri[3] = {
-            mesh.indices[i],
-            mesh.indices[i + 1],
-            mesh.indices[i + 2]};
+            new_indices[i],
+            new_indices[i + 1],
+            new_indices[i + 2]};
         for (int e = 0; e < 3; ++e)
         {
             std::uint32_t a = tri[e];
@@ -189,9 +233,9 @@ void VulkanRenderer::setMesh(const SceneBridge::MeshData& mesh)
     }
 
     createVertexBuffer(vertices);
-    createIndexBuffer(mesh.indices);
+    createIndexBuffer(new_indices);
     createLineIndexBuffer(line_indices);
-    index_count_      = static_cast<std::uint32_t>(mesh.indices.size());
+    index_count_      = static_cast<std::uint32_t>(new_indices.size());
     line_index_count_ = static_cast<std::uint32_t>(line_indices.size());
     vertex_count_     = static_cast<std::uint32_t>(vertices.size());
 }
