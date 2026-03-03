@@ -8,12 +8,11 @@
   "configurePresets": [
     {
       "name": "clangcl-vcpkg-debug",
-      "displayName": "Clang-CL + vcpkg (Debug)",
+      "displayName": "clang-cl + vcpkg (Debug)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_C_COMPILER": "clang-cl",
         "CMAKE_CXX_COMPILER": "clang-cl",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/.tools/vcpkg/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_FEATURE_FLAGS": "manifests",

@@ -11,8 +11,8 @@ namespace tools_2D::detail
     public:
         struct edge
         {
-            edge* rot = nullptr;
-            edge* next = nullptr;
+            edge* rot{};
+            edge* next{};
             int origin = -1;
             bool alive = false;
 
