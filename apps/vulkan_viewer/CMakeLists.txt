@@ -4,7 +4,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(unofficial-shaderc CONFIG REQUIRED)
 
 add_executable(vulkan_viewer
-    main.cpp
+    src/main.cpp
     src/viewer_app.cpp
     src/vulkan_renderer.cpp
     src/scene_bridge.cpp
