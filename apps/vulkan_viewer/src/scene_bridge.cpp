@@ -17,7 +17,8 @@ namespace
 
         std::vector<tools_3D::point> pts;
         pts.reserve(static_cast<std::size_t>(n));
-        for (int i = 0; i < n; ++i) pts.emplace_back(dist(rng), dist(rng), dist(rng));
+        for (int i = 0; i < n; ++i)
+            pts.emplace_back(dist(rng), dist(rng), dist(rng));
         return pts;
     }
 } // namespace

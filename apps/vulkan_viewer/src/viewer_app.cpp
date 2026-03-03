@@ -15,12 +15,18 @@ void ViewerApp::run()
 
 void ViewerApp::initWindow()
 {
-    if (glfwInit() == GLFW_FALSE) throw std::runtime_error("failed to initialize GLFW");
+    if (glfwInit() == GLFW_FALSE)
+        throw std::runtime_error("failed to initialize GLFW");
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-    window_ = glfwCreateWindow(1280, 720, "Delaunay 3D Vulkan Viewer", nullptr, nullptr);
+    window_ = glfwCreateWindow(
+        1280,
+        720,
+        "Delaunay 3D Vulkan Viewer",
+        nullptr,
+        nullptr);
     if (window_ == nullptr) throw std::runtime_error("failed to create window");
 
     glfwSetWindowUserPointer(window_, this);
@@ -61,11 +67,14 @@ void ViewerApp::rebuildScene()
     scene_.rebuild();
     renderer_.setMesh(scene_.mesh());
 
-    std::println("Algorithm: {} | points: {} | vertices: {} | triangles: {}",
-                 scene_.algorithm() == SceneBridge::Algorithm::BowyerWatson ? "Bowyer-Watson" : "Guibas-Stolfi",
-                 scene_.pointCount(),
-                 scene_.mesh().positions.size(),
-                 scene_.mesh().indices.size() / 3);
+    std::println(
+        "Algorithm: {} | points: {} | vertices: {} | triangles: {}",
+        scene_.algorithm() == SceneBridge::Algorithm::BowyerWatson
+            ? "Bowyer-Watson"
+            : "Guibas-Stolfi",
+        scene_.pointCount(),
+        scene_.mesh().positions.size(),
+        scene_.mesh().indices.size() / 3);
 }
 
 void ViewerApp::framebufferResizeCallback(

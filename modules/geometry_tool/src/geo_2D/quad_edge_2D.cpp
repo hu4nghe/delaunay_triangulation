@@ -39,7 +39,9 @@ namespace tools_2D::detail
         return sym()->origin;
     }
 
-    auto quad_edge_mesh::make_edge(int from, int to) -> edge*
+    auto quad_edge_mesh::make_edge(
+        int from,
+        int to) -> edge*
     {
         auto q = std::make_unique<quad_edge_block>();
 
@@ -65,15 +67,19 @@ namespace tools_2D::detail
         return e;
     }
 
-    void quad_edge_mesh::splice(edge* a, edge* b)
+    void quad_edge_mesh::splice(
+        edge* a,
+        edge* b)
     {
         edge* alpha = a->o_next()->rot;
-        edge* beta = b->o_next()->rot;
+        edge* beta  = b->o_next()->rot;
         std::swap(a->next, b->next);
         std::swap(alpha->next, beta->next);
     }
 
-    auto quad_edge_mesh::connect(edge* a, edge* b) -> edge*
+    auto quad_edge_mesh::connect(
+        edge* a,
+        edge* b) -> edge*
     {
         edge* e = make_edge(a->dest(), b->origin);
         splice(e, a->l_next());
@@ -85,7 +91,7 @@ namespace tools_2D::detail
     {
         splice(e, e->o_prev());
         splice(e->sym(), e->sym()->o_prev());
-        e->alive = false;
+        e->alive        = false;
         e->sym()->alive = false;
     }
 
@@ -93,4 +99,4 @@ namespace tools_2D::detail
     {
         return primal_edges_;
     }
-}
+} // namespace tools_2D::detail

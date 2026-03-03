@@ -52,8 +52,10 @@ auto CameraController::viewProjection(float aspect) const -> glm::mat4
         distance_ * std::sin(pitch_),
         distance_ * std::cos(pitch_) * std::cos(yaw_));
 
-    const glm::mat4 view = glm::lookAt(eye, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4       proj = glm::perspective(glm::radians(60.0f), aspect, 0.01f, 100.0f);
+    const glm::mat4 view =
+        glm::lookAt(eye, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 proj =
+        glm::perspective(glm::radians(60.0f), aspect, 0.01f, 100.0f);
     proj[1][1] *= -1.0f;
     return proj * view;
 }

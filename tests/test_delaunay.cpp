@@ -1,31 +1,31 @@
 // Adapt these to your actual API, types, and headers.
-#include <catch2/catch_test_macros.hpp>
 #include <catch2/benchmark/catch_benchmark.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <random>
+
 
 #include "geo_2D/triangulation_2D.h"
 
-bool satisfies_empty_circle(const std::vector<tools_2D::point> pts, const std::vector<tools_2D::triangle>& triangles) 
+bool satisfies_empty_circle(
+    const std::vector<tools_2D::point>     pts,
+    const std::vector<tools_2D::triangle>& triangles)
 {
-    for (auto& triangle : triangles) 
+    for (auto& triangle : triangles)
     {
         const auto circum = triangle.circum_circle();
-        for(const auto point : pts)
+        for (const auto point : pts)
         {
-            if(triangle.containsVertex(point))
-                continue;
-            if(circum.contains(point))
-                return false;
+            if (triangle.containsVertex(point)) continue;
+            if (circum.contains(point)) return false;
         }
     }
     return true;
 }
 
 // ---------- Test data ----------
-std::vector<tools_2D::point> square_4() 
+std::vector<tools_2D::point> square_4()
 {
-    return 
-    {
+    return {
         {0.0, 0.0}, // 0
         {1.0, 0.0}, // 1
         {1.0, 1.0}, // 2
@@ -33,54 +33,48 @@ std::vector<tools_2D::point> square_4()
     };
 }
 
-std::vector<tools_2D::point> three_points_triangle() 
+std::vector<tools_2D::point> three_points_triangle()
 {
-    return 
-    {
+    return {
         {0.0, 0.0}, // 0
         {1.0, 0.0}, // 1
         {0.0, 1.0}  // 2
     };
 }
 
-std::vector<tools_2D::point> collinear_4() 
+std::vector<tools_2D::point> collinear_4()
 {
-    return 
-    {
-        {0.0, 0.0},
-        {1.0, 0.0},
-        {2.0, 0.0},
-        {3.0, 0.0}
-    };
+    return {{0.0, 0.0}, {1.0, 0.0}, {2.0, 0.0}, {3.0, 0.0}};
 }
 
-std::vector<tools_2D::point> with_duplicates() 
+std::vector<tools_2D::point> with_duplicates()
 {
-    return 
-    {
+    return {
         {0.0, 0.0},
         {1.0, 0.0},
         {1.0, 0.0}, // duplicate
-        {0.5, 0.8}
-    };
+        {0.5, 0.8}};
 }
 
-std::vector<tools_2D::point> random_cloud(int n, unsigned seed = 42) 
+std::vector<tools_2D::point> random_cloud(
+    int      n,
+    unsigned seed = 42)
 {
-    std::mt19937 rng(seed);
+    std::mt19937                           rng(seed);
     std::uniform_real_distribution<double> dist(-10.0, 10.0);
-    std::vector<tools_2D::point> pts; 
+    std::vector<tools_2D::point>           pts;
     pts.reserve(n);
-    for (int i = 0; i < n; ++i) 
-        pts.push_back({dist(rng), dist(rng)});
+    for (int i = 0; i < n; ++i) pts.push_back({dist(rng), dist(rng)});
     return pts;
 }
 
 // ---------- Tests ----------
 
-TEST_CASE("Basic", "[delaunay][basic]") 
+TEST_CASE(
+    "Basic",
+    "[delaunay][basic]")
 {
-    auto pts = three_points_triangle();
+    auto pts       = three_points_triangle();
     auto triangles = tools_2D::boyer_watson_2D(pts);
     REQUIRE(triangles.size() == 1);
 
@@ -88,9 +82,11 @@ TEST_CASE("Basic", "[delaunay][basic]")
     REQUIRE(satisfies_empty_circle(pts, triangles));
 }
 
-TEST_CASE("Square", "[delaunay][square]") 
+TEST_CASE(
+    "Square",
+    "[delaunay][square]")
 {
-    auto pts = square_4();
+    auto pts       = square_4();
     auto triangles = tools_2D::boyer_watson_2D(pts);
 
     // Two triangles expected.
@@ -98,30 +94,38 @@ TEST_CASE("Square", "[delaunay][square]")
     REQUIRE(satisfies_empty_circle(pts, triangles));
 }
 
-TEST_CASE("Random cloud", "[delaunay][random_cloud]") 
+TEST_CASE(
+    "Random cloud",
+    "[delaunay][random_cloud]")
 {
-    auto pts = random_cloud(500, 2025);
+    auto pts       = random_cloud(500, 2025);
     auto triangles = tools_2D::boyer_watson_2D(pts);
     REQUIRE(satisfies_empty_circle(pts, triangles));
 }
 
-TEST_CASE("Guibas-Stolfi API", "[delaunay][guibas_stolfi]")
+TEST_CASE(
+    "Guibas-Stolfi API",
+    "[delaunay][guibas_stolfi]")
 {
-    auto pts = random_cloud(500, 2025);
+    auto pts       = random_cloud(500, 2025);
     auto triangles = tools_2D::guibas_stolfi_2D(pts);
     REQUIRE(satisfies_empty_circle(pts, triangles));
 }
 
-TEST_CASE("Random cloud Benchmark", "[delaunay][benchmark]") 
+TEST_CASE(
+    "Random cloud Benchmark",
+    "[delaunay][benchmark]")
 {
     auto pts = random_cloud(500, 2025);
-    BENCHMARK("boyer_watson_2D 500 points") 
+    BENCHMARK("boyer_watson_2D 500 points")
     {
         return tools_2D::boyer_watson_2D(pts);
     };
 }
 
-TEST_CASE("Random cloud Benchmark Guibas-Stolfi", "[delaunay][benchmark]")
+TEST_CASE(
+    "Random cloud Benchmark Guibas-Stolfi",
+    "[delaunay][benchmark]")
 {
     auto pts = random_cloud(500, 2025);
     BENCHMARK("guibas_stolfi_2D 500 points")

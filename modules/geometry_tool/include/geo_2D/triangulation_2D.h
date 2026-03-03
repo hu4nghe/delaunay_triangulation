@@ -14,4 +14,4 @@ namespace tools_2D
         -> std::vector<tools_2D::triangle>;
 
     auto read_and_triangulate() -> std::vector<tools_2D::triangle>;
-}
+} // namespace tools_2D

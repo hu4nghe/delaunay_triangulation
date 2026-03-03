@@ -43,26 +43,36 @@ namespace
     {
         auto operator()(const face_key& key) const noexcept -> std::size_t
         {
-            return (static_cast<std::size_t>(key.a) * 73856093u)
-                 ^ (static_cast<std::size_t>(key.b) * 19349663u)
-                 ^ (static_cast<std::size_t>(key.c) * 83492791u);
+            return (static_cast<std::size_t>(key.a) * 73856093u) ^
+                   (static_cast<std::size_t>(key.b) * 19349663u) ^
+                   (static_cast<std::size_t>(key.c) * 83492791u);
         }
     };
 
-    auto make_face_key(int i, int j, int k) -> face_key
+    auto make_face_key(
+        int i,
+        int j,
+        int k) -> face_key
     {
         std::array<int, 3> arr{i, j, k};
         std::sort(arr.begin(), arr.end());
         return {arr[0], arr[1], arr[2]};
     }
 
-    auto tetra_faces(const tetra_idx& t) -> std::array<face_idx, 4>
+    auto tetra_faces(const tetra_idx& t) -> std::array<
+        face_idx,
+        4>
     {
-        return {{{t.a, t.b, t.c}, {t.a, t.b, t.d}, {t.a, t.c, t.d}, {t.b, t.c, t.d}}};
+        return {
+            {{t.a, t.b, t.c},
+             {t.a, t.b, t.d},
+             {t.a, t.c, t.d},
+             {t.b, t.c, t.d}}};
     }
 
-    auto super_tetra(const std::vector<tools_3D::point>& points)
-        -> std::array<tools_3D::point, 4>
+    auto super_tetra(const std::vector<tools_3D::point>& points) -> std::array<
+        tools_3D::point,
+        4>
     {
         double min_x = points.front().get_x();
         double max_x = min_x;
@@ -84,40 +94,43 @@ namespace
         const double cx = (min_x + max_x) * 0.5;
         const double cy = (min_y + max_y) * 0.5;
         const double cz = (min_z + max_z) * 0.5;
-        const double span = std::max({max_x - min_x, max_y - min_y, max_z - min_z});
+        const double span =
+            std::max({max_x - min_x, max_y - min_y, max_z - min_z});
         const double S = std::max(1.0, span * 20.0);
 
         return {
             tools_3D::point(cx - 3.0 * S, cy, cz - S),
             tools_3D::point(cx + 3.0 * S, cy, cz - S),
             tools_3D::point(cx, cy + 3.0 * S, cz + S),
-            tools_3D::point(cx, cy - 3.0 * S, cz + S)
-        };
+            tools_3D::point(cx, cy - 3.0 * S, cz + S)};
     }
-}
+} // namespace
 
 namespace tools_3D
 {
     auto bowyer_watson_3D(const std::vector<tools_3D::point>& points)
         -> std::vector<tools_3D::tetrahedron>
     {
-        if (points.size() < 4)
-            return {};
+        if (points.size() < 4) return {};
 
         std::vector<tools_3D::point> sorted_points = points;
         std::sort(sorted_points.begin(), sorted_points.end());
-        sorted_points.erase(std::unique(sorted_points.begin(), sorted_points.end()), sorted_points.end());
+        sorted_points.erase(
+            std::unique(sorted_points.begin(), sorted_points.end()),
+            sorted_points.end());
 
-        if (sorted_points.size() < 4)
-            return {};
+        if (sorted_points.size() < 4) return {};
 
-        const int original_count = static_cast<int>(sorted_points.size());
-        const auto super = super_tetra(sorted_points);
-        for (const auto& p : super)
-            sorted_points.push_back(p);
+        const int  original_count = static_cast<int>(sorted_points.size());
+        const auto super          = super_tetra(sorted_points);
+        for (const auto& p : super) sorted_points.push_back(p);
 
         std::vector<tetra_idx> tetrahedra;
-        tetrahedra.push_back({original_count + 0, original_count + 1, original_count + 2, original_count + 3});
+        tetrahedra.push_back(
+            {original_count + 0,
+             original_count + 1,
+             original_count + 2,
+             original_count + 3});
 
         for (int p_idx = 0; p_idx < original_count; ++p_idx)
         {
@@ -140,42 +153,39 @@ namespace tools_3D
                 }
             }
 
-            std::unordered_map<face_key, std::pair<int, face_idx>, face_key_hash> face_count;
+            std::
+                unordered_map<face_key, std::pair<int, face_idx>, face_key_hash>
+                    face_count;
             for (int bad_id : bad_ids)
             {
                 for (const auto& f : tetra_faces(tetrahedra[bad_id]))
                 {
                     const auto key = make_face_key(f.i, f.j, f.k);
-                    auto it = face_count.find(key);
+                    auto       it  = face_count.find(key);
                     if (it == face_count.end())
                         face_count.emplace(key, std::make_pair(1, f));
-                    else
-                        it->second.first += 1;
+                    else it->second.first += 1;
                 }
             }
 
             std::vector<char> is_bad(tetrahedra.size(), 0);
-            for (int bad_id : bad_ids)
-                is_bad[bad_id] = 1;
+            for (int bad_id : bad_ids) is_bad[bad_id] = 1;
 
             std::vector<tetra_idx> next_tetrahedra;
             next_tetrahedra.reserve(tetrahedra.size() + face_count.size());
             for (int t = 0; t < static_cast<int>(tetrahedra.size()); ++t)
-                if (!is_bad[t])
-                    next_tetrahedra.push_back(tetrahedra[t]);
+                if (!is_bad[t]) next_tetrahedra.push_back(tetrahedra[t]);
 
             for (const auto& [_, counted] : face_count)
             {
-                if (counted.first != 1)
-                    continue;
+                if (counted.first != 1) continue;
 
-                const auto& f = counted.second;
+                const auto&  f      = counted.second;
                 const double volume = tools_3D::orient3d(
                     sorted_points[f.i],
                     sorted_points[f.j],
                     sorted_points[f.k],
-                    sorted_points[p_idx]
-                );
+                    sorted_points[p_idx]);
 
                 if (std::abs(volume) <= tools_3D::geometric_epsilon_3D)
                     continue;
@@ -191,15 +201,15 @@ namespace tools_3D
 
         for (const auto& tet : tetrahedra)
         {
-            if (tet.a >= original_count || tet.b >= original_count || tet.c >= original_count || tet.d >= original_count)
+            if (tet.a >= original_count || tet.b >= original_count ||
+                tet.c >= original_count || tet.d >= original_count)
                 continue;
 
             result.emplace_back(
                 sorted_points[tet.a],
                 sorted_points[tet.b],
                 sorted_points[tet.c],
-                sorted_points[tet.d]
-            );
+                sorted_points[tet.d]);
         }
 
         return result;
@@ -210,4 +220,4 @@ namespace tools_3D
     {
         return bowyer_watson_3D(points);
     }
-}
+} // namespace tools_3D

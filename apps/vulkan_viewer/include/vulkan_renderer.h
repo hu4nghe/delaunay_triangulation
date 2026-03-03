@@ -104,7 +104,7 @@ class VulkanRenderer
     std::array<VkDeviceMemory, MAX_FRAMES_IN_FLIGHT> uniform_buffers_memory_{};
     std::array<void*, MAX_FRAMES_IN_FLIGHT>          uniform_buffers_mapped_{};
 
-    VkDescriptorPool                                  descriptor_pool_ = VK_NULL_HANDLE;
+    VkDescriptorPool descriptor_pool_ = VK_NULL_HANDLE;
     std::array<VkDescriptorSet, MAX_FRAMES_IN_FLIGHT> descriptor_sets_{};
 
     std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> image_available_semaphores_{};
@@ -156,13 +156,15 @@ class VulkanRenderer
     auto findMemoryType(
         std::uint32_t         type_filter,
         VkMemoryPropertyFlags properties) const -> std::uint32_t;
-    auto querySwapChainSupport(VkPhysicalDevice device) const -> SwapChainSupportDetails;
+    auto querySwapChainSupport(VkPhysicalDevice device) const
+        -> SwapChainSupportDetails;
     auto findQueueFamilies(VkPhysicalDevice device) const -> QueueFamilyIndices;
     auto isDeviceSuitable(VkPhysicalDevice device) const -> bool;
 
-    auto chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats) const
-        -> VkSurfaceFormatKHR;
-    auto chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& present_modes) const
+    auto chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats)
+        const -> VkSurfaceFormatKHR;
+    auto chooseSwapPresentMode(
+        const std::vector<VkPresentModeKHR>& present_modes) const
         -> VkPresentModeKHR;
     auto chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) const
         -> VkExtent2D;
@@ -170,5 +172,6 @@ class VulkanRenderer
     auto compileShader(
         const std::string&    source,
         VkShaderStageFlagBits stage) -> std::vector<std::uint32_t>;
-    auto createShaderModule(const std::vector<std::uint32_t>& code) -> VkShaderModule;
+    auto createShaderModule(const std::vector<std::uint32_t>& code)
+        -> VkShaderModule;
 };
