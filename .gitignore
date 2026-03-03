@@ -35,5 +35,4 @@
 /bin
 **/.vscode
 **/.cache/
-.clangd
-.tools/
+.*
