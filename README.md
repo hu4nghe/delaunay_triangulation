@@ -47,33 +47,6 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-## 3D Sample (new)
-
-A dedicated sample executable is now provided:
-
-- source: `samples/sample_3d.cpp`
-- target: `sample_3d`
-
-Run:
-
-```bash
-./build/samples/sample_3d.exe
-./build/samples/sample_3d.exe 200 bowyer 42
-./build/samples/sample_3d.exe 200 guibas 42
-```
-
-Arguments:
-
-1. point count (minimum 8)
-2. algorithm: `bowyer` or `guibas`
-3. random seed
-
-Output includes:
-
-- input point count
-- generated tetrahedra count
-- extracted boundary vertices/triangles count
-
 ## Vulkan Viewer
 
 Run:
