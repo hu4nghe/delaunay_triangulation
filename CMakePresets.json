@@ -11,8 +11,13 @@
       "displayName": "clang-cl + vcpkg (Debug)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build",
+      "environment": {
+        "CC": "clang-cl",
+        "CXX": "clang-cl"
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "clang-cl",
         "CMAKE_CXX_COMPILER": "clang-cl",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/.tools/vcpkg/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_FEATURE_FLAGS": "manifests",
